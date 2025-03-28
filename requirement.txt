@@ -1,0 +1,6 @@
+dearpygui
+pyperclip
+pyclip
+pillow
+g4f[all]
+datetime
