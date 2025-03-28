@@ -8,7 +8,7 @@ Magick-Notes is a small software built with PyDearGUI that allows you to pin not
 ![Preview](demonstration.png)
 
 
-## todo list 
+## Todo list 
 - [x] Add some IA to transform your texte
 - [x] Support image 
 - [ ] Drag and drop support ? 
