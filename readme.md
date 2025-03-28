@@ -1,13 +1,19 @@
-# Magick-notes
+# **Magick-notes**
 
 
-Magick note is a little software build with pydeargui, who is gona allow you to pin note. You can add texte and  and images directly from you clipboard 📋 
+Magick-Notes is a small software built with PyDearGUI that allows you to pin notes. You can add text and images directly from your clipboard 📋
+
+ 
 
 ![Preview](demonstration.png)
 
 
 ## todo list 
-- [ ] Add Ia
-- [x] Do 
-- [ ] da
+- [x] Add some IA to transform your texte
+- [x] Support image 
+- [ ] Drag and drop support ? 
+- [ ] Texte image recongnition (ORC)
+- [ ] IA texte analys
+- [ ] Latex math expresion support 
+- [ ] Paste file 
 
