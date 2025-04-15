@@ -29,9 +29,14 @@ python3 main.py
 ```
 
 ## Keyboard shortcut 
-If you want to use this with a shortcut, you can execute shortcut.exe, then, when you presse ctrl + maj + H. The application will open 
+If you want to use this with a shortcut, you can execute **shortcut.exe**, then, when you presse ctrl + maj + H. The application will open 
 
-If you want this to start 
+If you want this to start this on start of your computer you can go to 
+```.sh 
+shell:startup
+```
+and drop the **shortcut.exe** file here
+
 
 ## Todo list 
 - [x] Add some IA to transform your texte
