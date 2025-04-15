@@ -28,10 +28,15 @@ When everything is done, you just have to run it !
 python3 main.py
 ```
 
+## Keyboard shortcut 
+If you want to use this with a shortcut, you can execute shortcut.exe, then, when you presse ctrl + maj + H. The application will open 
+
+If you want this to start 
 
 ## Todo list 
 - [x] Add some IA to transform your texte
 - [x] Support image 
+- [x] Make it work with shortcut
 - [ ] Drag and drop support ? 
 - [ ] Texte image recongnition (ORC)
 - [ ] IA texte analys
