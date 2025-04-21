@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "C:\Users\valer\Documents\progval\Presse_Propre\main.py", line 234, in <module>
+    print(bas__yes)
+  File "C:\Users\valer\AppData\Local\Programs\Python\Python311\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 0: character maps to <undefined>
