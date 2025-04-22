@@ -72,25 +72,37 @@ try:
                     x['type'] = "Deleted"
         with open('history_clipboard.json', 'w') as file:
             json.dump(data, file, indent=4)  
+    def on_resize(sender, app_data, user_data):
+        #print(app_data)
+        width, height =  dpg.get_item_rect_size("IA")
+        dpg.configure_item("input_text_id", width=width, height=height)
 
-    def ask_ia(sender, app_data, user_data): 
-        from g4f.client import Client
-        le_texte = user_data[0] 
-        texte_input = user_data[1] 
-        
-        tetexte_inputt = dpg.get_value(texte_input)
-        le_texte_du_texte = dpg.get_value(le_texte)
-        print(f"le texte de l'input c'est ca : {tetexte_inputt} ")
-        print(texte_input)
-        print(f"le texte c'est ca : {le_texte_du_texte}")
-        client = Client()
-        response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": f"{tetexte_inputt} : {le_texte_du_texte}" }],
-        )
-        rep_ia = response.choices[0].message.content
-        print(rep_ia)
-        pyperclip.copy(rep_ia)
+    def ask_ia(sender, app_data, user_data):
+
+        with dpg.window(label="IA answer", tag="IA", width=300, height=200):
+            dpg.add_loading_indicator(circle_count=10, radius=10, tag="loading_barrrrrr")
+            from g4f.client import Client
+            le_texte = user_data[0] 
+            texte_input = user_data[1] 
+            
+            tetexte_inputt = dpg.get_value(texte_input)
+            le_texte_du_texte = dpg.get_value(le_texte)
+            print(f"le texte de l'input c'est ca : {tetexte_inputt} ")
+            print(texte_input)
+            print(f"le texte c'est ca : {le_texte_du_texte}")
+            client = Client()
+            response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": f"{tetexte_inputt} : {le_texte_du_texte}" }],
+            )
+            rep_ia = response.choices[0].message.content
+            print(rep_ia)
+            pyperclip.copy(rep_ia)
+            dpg.delete_item("loading_barrrrrr")
+            dpg.add_input_text(default_value=rep_ia, multiline=True, width=300, height=200, tag="input_text_id")
+            with dpg.item_handler_registry(tag="resize_handler"):
+                dpg.add_item_resize_handler(callback=on_resize, user_data=None)
+            dpg.bind_item_handler_registry("IA", "resize_handler")
 
 
     def button_callback(sender, app_data, user_data):
