@@ -10,7 +10,7 @@ from PIL import Image
 import copy_sub
 import time 
 import os
-from g4f.client import Client
+
 import traceback
 import sys
 
@@ -74,6 +74,7 @@ try:
             json.dump(data, file, indent=4)  
 
     def ask_ia(sender, app_data, user_data): 
+        from g4f.client import Client
         le_texte = user_data[0] 
         texte_input = user_data[1] 
         
@@ -136,8 +137,10 @@ try:
             texture_id = dpg.add_static_texture(width, height, data)
         with dpg.table_row(tag=row_tag, parent="image_tab"):                 
             dpg.add_image(texture_id, width=200, height=200, tag=tag_number)
-            dpg.add_button(label="copier", callback=image_callback, user_data=image_tag)
-            dpg.add_button(label="supprimer", callback=supprimer_image, user_data=row_tag)
+            #dpg.add_button(label="copier", callback=image_callback, user_data=image_tag)
+            dpg.add_image_button(texture_tag=copy_icon, width=40, height=40, callback=image_callback, user_data=image_tag)
+            #dpg.add_button(label="supprimer", callback=supprimer_image, user_data=row_tag)
+            dpg.add_image_button(texture_tag=deltet_icon, width=40, height=40, callback=supprimer_image, user_data=row_tag)
 
     def eceoutsdf(): 
         copy_sub.execution()
@@ -181,6 +184,7 @@ try:
         with dpg.table_row(filter_key=f"{texte}", tag=row_tag, parent=filter_table_id):
             text_tag = f"text_{number}"
             dpg.add_text(texte, tag=text_tag, wrap=400)
+            #dpg.add_input_text(default_value=texte, tag=text_tag, readonly=True, multiline=True, width=300)
             dpg.add_image_button(texture_tag=copy_icon, width=40, height=40, callback=button_callback, user_data=text_tag)
             dpg.add_image_button(texture_tag=deltet_icon, width=40, height=40, callback=supprimer_texte, user_data=[row_tag, number,json_iidddd])
             with dpg.group(horizontal=True):
