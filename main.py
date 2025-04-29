@@ -520,8 +520,10 @@ try:
 
 
         dpg.bind_font(default_font)
-
-    dpg.create_viewport(title='Remember Copy', width=800, height=500)
+    
+    dpg.create_viewport(title='Remember Copy', width=800, height=500, large_icon="Icon/icon.ico")
+    dpg.set_viewport_large_icon("Icon/icon.ico")
+    dpg.set_viewport_small_icon("Icon/icon.ico")
     dpg.setup_dearpygui()
     dpg.show_viewport()
     dpg.set_primary_window("Tutorial", True)

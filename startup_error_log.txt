@@ -1,39 +1,10 @@
-Exception: 
-Error:     [1000]
-Command:   add alias
-Item:      0 
-Label:     Not found
-Item Type: Unknown
-Message:   Alias already exists
+Exception: Error: [1000] Message: 	No viewport created
 
 The above exception was the direct cause of the following exception:
 
 Traceback (most recent call last):
-  File "C:\Users\valer\AppData\Local\Programs\Python\Python311\Lib\site-packages\dearpygui\dearpygui.py", line 2971, in window
-    yield widget
-  File "c:\Users\valer\Documents\flag\Magick-notes\main.py", line 294, in <module>
-    add_table(pathh, number_ta, id_jsson, "file")
-  File "c:\Users\valer\Documents\flag\Magick-notes\main.py", line 218, in add_table
-    with dpg.table_row(tag=row_tag, parent="files_tab"):
-  File "C:\Users\valer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 137, in __enter__
-    return next(self.gen)
-           ^^^^^^^^^^^^^^
-  File "C:\Users\valer\AppData\Local\Programs\Python\Python311\Lib\site-packages\dearpygui\dearpygui.py", line 2659, in table_row
-    widget = internal_dpg.add_table_row(label=label, user_data=user_data, use_internal_label=use_internal_label, tag=tag, height=height, parent=parent, before=before, show=show, filter_key=filter_key, **kwargs)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-SystemError: <built-in function add_table_row> returned a result with an exception set
-
-During handling of the above exception, another exception occurred:
-
-Exception: Error: [1009] Message: 	No container to pop.
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "c:\Users\valer\Documents\flag\Magick-notes\main.py", line 231, in <module>
-    with dpg.window(label="Tutorial", tag="Tutorial"):
-  File "C:\Users\valer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 155, in __exit__
-    self.gen.throw(typ, value, traceback)
-  File "C:\Users\valer\AppData\Local\Programs\Python\Python311\Lib\site-packages\dearpygui\dearpygui.py", line 2973, in window
-    internal_dpg.pop_container_stack()
-SystemError: <built-in function pop_container_stack> returned a result with an exception set
+  File "c:\Users\valer\Documents\flag\Magick-notes\main.py", line 523, in <module>
+    dpg.set_viewport_large_icon("Icon/icon.ico")
+  File "C:\Users\valer\AppData\Local\Programs\Python\Python311\Lib\site-packages\dearpygui\dearpygui.py", line 880, in set_viewport_large_icon
+    internal_dpg.configure_viewport(0, large_icon=icon)
+SystemError: <built-in function configure_viewport> returned a result with an exception set
