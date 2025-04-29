@@ -4,3 +4,6 @@ pyclip
 pillow
 g4f[all]
 datetime
+win32ui
+win32gui
+ctypes
