@@ -39,7 +39,7 @@ If you want to use this with a shortcut, you can execute **shortcut.exe**, then,
 - [x] Support image 
 - [x] Make it work with shortcut
 - [ ] Drag and drop support ? (edit : not possible with dearpygui)
-- [ ] Texte image recongnition (ORC)  (edit : require too many depandance and I am lazy)
+- [ ] Texte image recongnition (ORC)  (edit : require too many depandance and I am lazy (edit : May be possible with an good API))
 - [x] IA texte analys
 - [ ] Latex math expresion support 
 - [x] Paste file 
