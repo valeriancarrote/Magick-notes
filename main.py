@@ -7,138 +7,19 @@ import pyclip
 from io import BytesIO
 import win32clipboard
 from PIL import Image
-import copy_sub
+from copy_sub import ClipboardHistoryManager
 import time 
 import os
-from ctypes import windll, wintypes, byref, sizeof
-import ctypes
-import win32gui
-import win32ui
-import win32con
-
+from popup import NotificationManager
+from icon_recuperation import IconCache
 import traceback
 import sys
-
+import ftfy
 
 try:
+    Icon = IconCache()
+    notif = NotificationManager()       
 
-    shell32 = windll.shell32
-
-    
-    class SHFILEINFO(ctypes.Structure):
-        _fields_ = [
-            ("hIcon", wintypes.HANDLE),
-            ("iIcon", ctypes.c_int),
-            ("dwAttributes", ctypes.c_ulong),
-            ("szDisplayName", ctypes.c_char * 260),
-            ("szTypeName", ctypes.c_char * 80)
-        ]
-
-    SHGFI_ICON = 0x000000100
-    SHGFI_SMALLICON = 0x000000001
-    SHGFI_LARGEICON = 0x000000000
-    SHGFI_USEFILEATTRIBUTES = 0x000000010
-
-    
-    file_icon_cache = {}
-
-    def get_file_icon_data(file_path, large=False):
-
-        shfi = SHFILEINFO()
-        
-    
-        flags = SHGFI_ICON | SHGFI_USEFILEATTRIBUTES
-        if large:
-            flags |= SHGFI_LARGEICON
-        else:
-            flags |= SHGFI_SMALLICON
-        
-    
-        result = shell32.SHGetFileInfoW(
-            file_path,  # Unicode path
-            0,
-            byref(shfi),
-            sizeof(shfi),
-            flags
-        )
-        
-        if not result:
-            print(f"Could not get icon for {file_path}")
-            return None
-        
-        
-        hicon = shfi.hIcon
-        
-        
-        icon_size = 32 if large else 16
-        
-        
-        hdc = win32ui.CreateDCFromHandle(win32gui.GetDC(0))
-        hbmp = win32ui.CreateBitmap()
-        hbmp.CreateCompatibleBitmap(hdc, icon_size, icon_size)
-        hdc_mem = hdc.CreateCompatibleDC()
-        hdc_mem.SelectObject(hbmp)
-        
-        
-        win32gui.DrawIconEx(
-            hdc_mem.GetHandleOutput(), 0, 0, hicon, icon_size, icon_size, 0, None, 0x0003
-        )
-        
-        
-        bmp_info = hbmp.GetInfo()
-        bmp_bits = hbmp.GetBitmapBits(True)
-        img = Image.frombuffer(
-            'RGBA',
-            (bmp_info['bmWidth'], bmp_info['bmHeight']),
-            bmp_bits, 'raw', 'BGRA', 0, 1
-        )
-        
-       
-        win32gui.DestroyIcon(hicon)
-        hdc_mem.DeleteDC()
-        hdc.DeleteDC()
-        
-        width, height = img.size
-        
-        img_data = []
-        pixels = list(img.getdata())
-        
-        for pixel in pixels:
-            img_data.append(pixel[0] / 255)  # R
-            img_data.append(pixel[1] / 255)  # G
-            img_data.append(pixel[2] / 255)  # B
-            img_data.append(pixel[3] / 255)  # A
-        
-        return width, height, img_data
-
-    def load_file_icon_for_dpg(file_path):
-        """Get file icon and prepare it for DearPyGUI with caching"""
-        global file_icon_cache
-        
-        # Use file extension as cache key
-        file_ext = os.path.splitext(file_path)[1].lower()
-        if not file_ext:
-            file_ext = ".unknown"
-        
-        # Return from cache if available
-        if file_ext in file_icon_cache:
-            return file_icon_cache[file_ext]
-        
-        # Get icon data
-        icon_data = get_file_icon_data(file_path)
-        
-        if icon_data:
-            width, height, img_data = icon_data
-            
-            # Create texture in DearPyGUI
-            with dpg.texture_registry():
-                texture_id = dpg.add_dynamic_texture(width, height, img_data)
-                
-                # Cache the texture ID
-                file_icon_cache[file_ext] = texture_id
-                return texture_id
-                
-        return None
     def send_to_clipboard(clip_type, data):
         win32clipboard.OpenClipboard()
         win32clipboard.EmptyClipboard()
@@ -159,7 +40,7 @@ try:
 
 
     def delete_element_by_id(target_id):
-
+        # We take the id from the json file and we delete the block
         with open("history_clipboard.json", 'r', encoding='utf-8') as f:
             data = json.load(f)
 
@@ -182,7 +63,7 @@ try:
         for item in os.listdir(folder_path):
             full_path = os.path.join(folder_path, item)
             if os.path.isfile(full_path):
-                files_dir.append(full_path)
+                files_dir.append(ftfy.fix_text(full_path))
         return files_dir
 
     def do_things_with_json(): 
@@ -193,7 +74,7 @@ try:
         dpg.create_context()
     list_of_copy = []
     def supprimer_image(sender, app_data, user_data): 
-        print("User data c'est ca : ", user_data)
+        #print("User data c'est ca : ", user_data)
         if user_data.startswith("row_img_"):
             try:
                 filename = user_data.split("_")[2]  
@@ -202,8 +83,10 @@ try:
                     os.remove(filepath)
                     
                     print(f"Fichier supprimé : {filepath}")
+                    notif.show_notification("Image deleted ! ", 3, "info")
             except Exception as e:
-                print(f"Ya un errror :  {e}")
+                print(f"Erreur :  {e}")
+                notif.show_notification(f"The image could not be deleted : {e} ", 3, "alert")
         if dpg.does_item_exist(user_data):
 
             dpg.delete_item(user_data)
@@ -211,31 +94,31 @@ try:
         do_things_with_json()
         tag_row = user_data[0]
         id_fichier = user_data[2]
+        essais = 0
         for x in list_of_copy["history"]: 
             if x["id"] == id_fichier: 
-                path_file = x["content"] #fait pas que je supprime rle fichier original
+                path_file = x["content"] 
+                path_file = ftfy.fix_text(path_file)
                 name_of_the_file = os.path.basename(path_file)
                 print(name_of_the_file)
                 list_files_in_folder("files")
-                for x in files_dir: 
+                print(files_dir)
+                for x in files_dir:  
                     if name_of_the_file in x: 
                         os.remove(f"files/{name_of_the_file}")
+                        delete_element_by_id(id_fichier)
                         print(f"the file {name_of_the_file} was deleted")
-                        delete_element_by_id(id_fichier)
+                        notif.show_notification(f"The file {name_of_the_file} was deleted ", 3, "info")
                         if dpg.does_item_exist(tag_row):
 
                             dpg.delete_item(tag_row)
-                        else : 
-                            print(f"can't delete form the table with : {tag_row}")
+                            return
                     if name_of_the_file not in x : 
-                        print(f"The file {name_of_the_file} was not found")
-                        delete_element_by_id(id_fichier)
-                        if dpg.does_item_exist(tag_row):
-
-                            dpg.delete_item(tag_row)
-                        else : 
-                            print(f"can't delete form the table with : {tag_row}")
-                
+                        essais += 1
+                        if len(files_dir) == essais :   
+                            print(f"The file {name_of_the_file} was not found")
+                            notif.show_notification(f"There was an error during the suppresion of the file {name_of_the_file}", 3, "alert")
+                            
     def supprimer_texte(sender, app_data, user_data): 
         truc_de_ligne = user_data[0]
         print(f"le truc de la ligne c'est ca :  {truc_de_ligne}")
@@ -243,6 +126,7 @@ try:
         print(f"l'id du json c'est ca :  {id_du_text_josn}")
         dpg.delete_item(truc_de_ligne)
         delete_element_by_id(id_du_text_josn)
+    
     def on_resize(sender, app_data, user_data):
         #print(app_data)
         width, height =  dpg.get_item_rect_size("IA")
@@ -276,11 +160,12 @@ try:
             dpg.bind_item_handler_registry("IA", "resize_handler")
 
     def open_file(sender, app_data, user_data): 
-        print("coucou")
+
         id_fichier = user_data[2]
         for x in list_of_copy["history"]: 
             if x["id"] == id_fichier: 
                 path_file = x["content"] 
+                path_file = ftfy.fix_text(path_file)
                 name_of_the_file = os.path.basename(path_file)
                 print(name_of_the_file)
                 list_files_in_folder("files")
@@ -358,13 +243,13 @@ try:
             texture_id = dpg.add_static_texture(width, height, data)
         with dpg.table_row(tag=row_tag, parent="image_tab"):                 
             dpg.add_image(texture_id, width=200, height=200, tag=tag_number)
-            #dpg.add_button(label="copier", callback=image_callback, user_data=image_tag)
             dpg.add_image_button(texture_tag=copy_icon, width=40, height=40, callback=image_callback, user_data=image_tag)
-            #dpg.add_button(label="supprimer", callback=supprimer_image, user_data=row_tag)
             dpg.add_image_button(texture_tag=deltet_icon, width=40, height=40, callback=supprimer_image, user_data=row_tag)
 
     def eceoutsdf(): 
-        copy_sub.execution()
+        instance = ClipboardHistoryManager()
+
+        instance.add_new_entry()
         do_things_with_json()
         do_things_with_image()
         
@@ -418,7 +303,6 @@ try:
             with dpg.table_row(filter_key=f"{texte}", tag=row_tag, parent=filter_table_id):
                 text_tag = f"text_{number}"
                 dpg.add_text(texte, tag=text_tag, wrap=400)
-                #dpg.add_input_text(default_value=texte, tag=text_tag, readonly=True, multiline=True, width=300)
                 dpg.add_image_button(texture_tag=copy_icon, width=40, height=40, callback=button_callback, user_data=json_iidddd)
                 dpg.add_image_button(texture_tag=deltet_icon, width=40, height=40, callback=supprimer_texte, user_data=[row_tag, number,json_iidddd])
                 with dpg.group(horizontal=True):
@@ -430,14 +314,14 @@ try:
             row_tag = f"row_{number}_{int(time.time()*1000)}"
             with dpg.table_row(tag=row_tag, parent="files_tab"):
 
-                file_icon_texture = load_file_icon_for_dpg(texte)
+                file_icon_texture = Icon.get_texture_for_file(texte)
 
                 text_tag = f"file_{number}"
                 
                 with dpg.group(horizontal=True):
                     
                     dpg.add_image(file_icon_texture, width=30, height=30)
-                    dpg.add_text(os.path.basename(texte), tag=text_tag, wrap=400)
+                    dpg.add_text(os.path.basename(ftfy.fix_text(texte)), tag=text_tag, wrap=400)
                 dpg.add_image_button(texture_tag=copy_icon, width=40, height=40, callback=file_copy_to_cliboard, user_data=text_tag)
                 dpg.add_image_button(texture_tag=deltet_icon, width=40, height=40, callback=supprimer_file, user_data=[row_tag, number,json_iidddd])
                 dpg.add_image_button(texture_tag=open_icon, width=40, height=40, callback=open_file, user_data=[row_tag, number,json_iidddd])
@@ -497,7 +381,7 @@ try:
                             tag_number = x
                             add_images(x, tag_number)
             with dpg.tab(label='Files '):
-                dpg.add_text("This feature is in developement, this should not work very well...")
+                #dpg.add_text("This feature is in developement, this should not work very well...")
                 with dpg.table(header_row=True, no_host_extendX=True, delay_search=True,
                         borders_innerH=True, borders_outerH=True, borders_innerV=True,
                         borders_outerV=True, context_menu_in_body=True, row_background=True,

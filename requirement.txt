@@ -7,3 +7,6 @@ datetime
 win32ui
 win32gui
 ctypes
+uuid
+threading
+ftfy
