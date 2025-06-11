@@ -64,7 +64,7 @@ try:
             full_path = os.path.join(folder_path, item)
             if os.path.isfile(full_path):
                 files_dir.append(ftfy.fix_text(full_path))
-        return files_dir
+        return files_dir  
 
     def do_things_with_json(): 
         global list_of_copy
@@ -128,7 +128,6 @@ try:
         delete_element_by_id(id_du_text_josn)
     
     def on_resize(sender, app_data, user_data):
-        #print(app_data)
         width, height =  dpg.get_item_rect_size("IA")
         dpg.configure_item("input_text_id", width=width, height=height)
 
@@ -161,6 +160,7 @@ try:
 
     def open_file(sender, app_data, user_data): 
 
+
         id_fichier = user_data[2]
         for x in list_of_copy["history"]: 
             if x["id"] == id_fichier: 
@@ -177,12 +177,13 @@ try:
                         break
                 if not found: 
                     print(f"File '{name_of_the_file}' not found.")
+                    notif.show_notification(f"Can't open file {name_of_the_file}", 3, "alert")
     def button_callback(sender, app_data, user_data):
+
         texte = dpg.get_value(user_data)
         print(f"Copié : {texte}")
         pyperclip.copy(texte)
     def file_copy_to_cliboard(sender, app_data, user_data): 
-        print("sf")
         id_fichier = user_data
         for x in list_of_copy["history"]: 
             if x["id"] == id_fichier: 
@@ -204,8 +205,6 @@ try:
                     print(f"File '{name_of_the_file}' not found.")
 
     def image_callback(sender, app_data, user_data):
-        print("ok")
-        #print(user_data)
         filepath = f'image/{user_data}'
         image = Image.open(filepath)
 
@@ -296,10 +295,10 @@ try:
                 id_jssson = text["id"] 
                 add_table(pathhh, number_tag_file, id_jssson, "file")            
 
-
     def add_table(texte, number, json_iidddd, type): 
         if type == str("text"): 
             row_tag = f"row_{number}_{int(time.time()*1000)}"
+            
             with dpg.table_row(filter_key=f"{texte}", tag=row_tag, parent=filter_table_id):
                 text_tag = f"text_{number}"
                 dpg.add_text(texte, tag=text_tag, wrap=400)
@@ -310,7 +309,6 @@ try:
                     dpg.add_input_text(width=120, tag=input_tag)
                     dpg.add_button(label="Ask", callback=ask_ia, user_data=[text_tag, input_tag])
         if type == str("file"): 
-            #print(texte)
             row_tag = f"row_{number}_{int(time.time()*1000)}"
             with dpg.table_row(tag=row_tag, parent="files_tab"):
 
@@ -333,6 +331,17 @@ try:
             dpg.add_font_chars([0x201d, 0x2019, 0x2005, 0x201c, 0x153, 0x2022, 0x1f4cb, 0x274c])
 
     with dpg.window(label="Tutorial", tag="Tutorial"):
+        with dpg.menu_bar():
+            with dpg.menu(label="Tools"):
+                dpg.add_menu_item(label="Show About", callback=lambda:dpg.show_tool(dpg.mvTool_About))
+                dpg.add_menu_item(label="Show Metrics", callback=lambda:dpg.show_tool(dpg.mvTool_Metrics))
+                dpg.add_menu_item(label="Show Documentation", callback=lambda:dpg.show_tool(dpg.mvTool_Doc))
+                dpg.add_menu_item(label="Show Debug", callback=lambda:dpg.show_tool(dpg.mvTool_Debug))
+                dpg.add_menu_item(label="Show Style Editor", callback=lambda:dpg.show_tool(dpg.mvTool_Style))
+                dpg.add_menu_item(label="Show Font Manager", callback=lambda:dpg.show_tool(dpg.mvTool_Font))
+                dpg.add_menu_item(label="Show Item Registry", callback=lambda:dpg.show_tool(dpg.mvTool_ItemRegistry))
+                dpg.add_menu_item(label="Show Stack Tool", callback=lambda:dpg.show_tool(dpg.mvTool_Stack))
+
         t2 = dpg.add_button(label="coucou", width=200, height=50, arrow=True, callback=eceoutsdf)
 
         with dpg.theme() as item_theme:
