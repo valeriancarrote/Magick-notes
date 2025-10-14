@@ -51,7 +51,7 @@ try:
         if original_length == new_length:
             print(f"No element with id {target_id} was found.")
         else:
-            print(f"Element with id {target_id} deleted.")
+            print(f"Element with id {target_id} deleted form json file.")
 
         with open("history_clipboard.json", 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
@@ -75,21 +75,30 @@ try:
     list_of_copy = []
     def supprimer_image(sender, app_data, user_data): 
         #print("User data c'est ca : ", user_data)
+        do_things_with_json()
         if user_data.startswith("row_img_"):
             try:
                 filename = user_data.split("_")[2]  
                 filepath = os.path.join("image", filename)
                 if os.path.exists(filepath):
+                    file_id = filepath.replace(".PNG", "")
+                    file_id = file_id.replace(mypath.replace("/", "\\"), "")
+                    for id in list_of_copy["history"]: 
+                        if id["content"] == int(file_id):   
+                            id_j = id["id"]
+                            delete_element_by_id(id_j)
+
                     os.remove(filepath)
                     
                     print(f"Fichier supprimé : {filepath}")
+                    if dpg.does_item_exist(user_data):
+                        dpg.delete_item(user_data)
                     notif.show_notification("Image deleted ! ", 3, "info")
+
             except Exception as e:
                 print(f"Erreur :  {e}")
                 notif.show_notification(f"The image could not be deleted : {e} ", 3, "alert")
-        if dpg.does_item_exist(user_data):
 
-            dpg.delete_item(user_data)
     def supprimer_file(sender, app_data, user_data): 
         do_things_with_json()
         tag_row = user_data[0]
@@ -128,13 +137,14 @@ try:
         delete_element_by_id(id_du_text_josn)
     
     def on_resize(sender, app_data, user_data):
-        width, height =  dpg.get_item_rect_size("IA")
+        width, height =  dpg.get_item_rect_size(user_data)
         dpg.configure_item("input_text_id", width=width, height=height)
 
     def ask_ia(sender, app_data, user_data):
-
-        with dpg.window(label="IA answer", tag="IA", width=300, height=200):
-            dpg.add_loading_indicator(circle_count=10, radius=10, tag="loading_barrrrrr")
+        tag_window = f"win_{int(time.time()*1000)}"
+        with dpg.window(label="IA answer", tag=tag_window, width=300, height=200):
+            tag_load = int(time.time()*1000)
+            dpg.add_loading_indicator(circle_count=10, radius=10, tag=tag_load)
             from g4f.client import Client
             le_texte = user_data[0] 
             texte_input = user_data[1] 
@@ -152,11 +162,11 @@ try:
             rep_ia = response.choices[0].message.content
             print(rep_ia)
             pyperclip.copy(rep_ia)
-            dpg.delete_item("loading_barrrrrr")
+            dpg.delete_item(tag_load)
             dpg.add_input_text(default_value=rep_ia, multiline=True, width=300, height=200, tag="input_text_id")
             with dpg.item_handler_registry(tag="resize_handler"):
-                dpg.add_item_resize_handler(callback=on_resize, user_data=None)
-            dpg.bind_item_handler_registry("IA", "resize_handler")
+                dpg.add_item_resize_handler(callback=on_resize, user_data=tag_window)
+            dpg.bind_item_handler_registry(tag_window, "resize_handler")
 
     def open_file(sender, app_data, user_data): 
 
@@ -178,8 +188,24 @@ try:
                 if not found: 
                     print(f"File '{name_of_the_file}' not found.")
                     notif.show_notification(f"Can't open file {name_of_the_file}", 3, "alert")
-    def button_callback(sender, app_data, user_data):
+    def open_image(sender, app_data, user_data): 
 
+
+        id_fichier = user_data
+        print(id_fichier)
+        
+        list_files_in_folder("image")
+        found = False
+        for x in files_dir: 
+                    if id_fichier in x: 
+                        os.startfile(f"image\{id_fichier}")
+                        found = True 
+                        break
+        if not found: 
+            print(f"Image '{id_fichier}' not found.")
+            notif.show_notification(f"Can't open image {id_fichier}", 3, "alert")
+    def button_callback(sender, app_data, user_data):
+        print(user_data)
         texte = dpg.get_value(user_data)
         print(f"Copié : {texte}")
         pyperclip.copy(texte)
@@ -212,8 +238,39 @@ try:
         image.convert("RGB").save(output, "BMP")
         data = output.getvalue()[14:]
         output.close()
-
+        
         send_to_clipboard(win32clipboard.CF_DIB, data)
+        notif.show_notification(f"The Image was succesfuly copied", 3, "info")
+    def add_spe_char_in_json(spe): 
+        
+        ajout = { 
+            "character" : str(spe)
+        }
+        with open("history_clipboard.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+        data["spe_character"].append(ajout) 
+        with open("history_clipboard.json", "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+
+    def spe_char_interface(): 
+        tag_window = f"win_char_{int(time.time()*1000)}"
+        with dpg.window(label="Add spe char", tag=tag_window, width=400, height=200): 
+            dpg.add_text("Sometime, it can happen that the application doesn't recogize ")
+            dpg.add_text(" a caracter (In this case the carater will be replace by ?)  ")
+
+            dpg.add_text("To fix this you can copy your carater and paste it here : ")
+
+            with dpg.group(horizontal=True):
+                    input_tag_carac = f"carac_{int(time.time()*1000)}"
+                    dpg.add_input_text(width=50, tag=input_tag_carac)
+                    dpg.add_button(label="Send", callback=ask_ia, user_data=input_tag_carac)
+
+
+
+ 
+
+
+
 
     do_things_with_json()
     do_things_with_image()
@@ -244,7 +301,32 @@ try:
             dpg.add_image(texture_id, width=200, height=200, tag=tag_number)
             dpg.add_image_button(texture_tag=copy_icon, width=40, height=40, callback=image_callback, user_data=image_tag)
             dpg.add_image_button(texture_tag=deltet_icon, width=40, height=40, callback=supprimer_image, user_data=row_tag)
+    def add_image_with_popup(file_pathh, tag_number, width=120, height=120):
+        #row_tag = f"row_img_better_{tag_number}_{int(time.time()*1000)}"
+        popup_btn_tag = f"{tag_number}_popup_{int(time.time()*1000)}"
+        image_btn_tag = f"row_img_{tag_number}_btn_{int(time.time()*1000)}"
 
+        width, height, channels, data = dpg.load_image(f"image/{file_pathh}")
+        with dpg.texture_registry():
+            texture_id = dpg.add_static_texture(width, height, data)
+        img_btn = dpg.add_image_button(texture_id, width=width, height=height, tag=image_btn_tag)
+        
+        with dpg.popup(img_btn, tag=popup_btn_tag, no_move=True, min_size=[200, 90], max_size=[200, 90]):                 
+            dpg.bind_item_theme(popup_btn_tag, create_no_padding_theme())
+            dpg.add_button(label="Open in default image viewer", width=200, callback=open_image, user_data=tag_number)
+            dpg.add_separator()
+            dpg.add_button(label="Copy                                         ", width=200, callback=image_callback, user_data=tag_number)
+            dpg.add_button(label="Delete                                       ",width=200,  callback=supprimer_image, user_data=image_btn_tag)
+            dpg.add_separator()
+            dpg.add_button(label="Read text in image                  ", width=200, callback=image_callback, user_data=tag_number)
+
+    def create_no_padding_theme():
+        with dpg.theme() as theme_id:
+            with dpg.theme_component(dpg.mvAll):
+                dpg.add_theme_style(dpg.mvStyleVar_WindowPadding, 0, 0)
+                dpg.add_theme_style(dpg.mvStyleVar_ItemSpacing, 0, 1)
+                dpg.add_theme_color(dpg.mvThemeCol_PopupBg, (51, 51, 55, 255))
+        return theme_id
     def eceoutsdf(): 
         instance = ClipboardHistoryManager()
 
@@ -252,9 +334,10 @@ try:
         do_things_with_json()
         do_things_with_image()
         
-        children = dpg.get_item_children("image_tab", 1)
-        if children:
-            for child in children:
+
+        children2 = dpg.get_item_children("img_container_but_better", 1) 
+        if children2:
+            for child in children2:
                 dpg.delete_item(child)
 
         create_texture_registry()
@@ -264,8 +347,12 @@ try:
                 dpg.delete_item(item)
 
         for img in list_images:
-            tag_number = img                         
-            add_images(img, tag_number)
+            tag_number = img
+
+            with dpg.group(horizontal=True, parent="img_container_but_better"):
+                add_image_with_popup(img, tag_number, width=120, height=120)
+
+
         children = dpg.get_item_children(filter_table_id, 1)
         if children:    
             for child in children:
@@ -302,7 +389,7 @@ try:
             with dpg.table_row(filter_key=f"{texte}", tag=row_tag, parent=filter_table_id):
                 text_tag = f"text_{number}"
                 dpg.add_text(texte, tag=text_tag, wrap=400)
-                dpg.add_image_button(texture_tag=copy_icon, width=40, height=40, callback=button_callback, user_data=json_iidddd)
+                dpg.add_image_button(texture_tag=copy_icon, width=40, height=40, callback=button_callback, user_data=text_tag)
                 dpg.add_image_button(texture_tag=deltet_icon, width=40, height=40, callback=supprimer_texte, user_data=[row_tag, number,json_iidddd])
                 with dpg.group(horizontal=True):
                     input_tag = f"fun_{number}"
@@ -332,7 +419,7 @@ try:
 
     with dpg.window(label="Tutorial", tag="Tutorial"):
         with dpg.menu_bar():
-            with dpg.menu(label="Tools"):
+            with dpg.menu(label="Debug"):
                 dpg.add_menu_item(label="Show About", callback=lambda:dpg.show_tool(dpg.mvTool_About))
                 dpg.add_menu_item(label="Show Metrics", callback=lambda:dpg.show_tool(dpg.mvTool_Metrics))
                 dpg.add_menu_item(label="Show Documentation", callback=lambda:dpg.show_tool(dpg.mvTool_Doc))
@@ -341,7 +428,8 @@ try:
                 dpg.add_menu_item(label="Show Font Manager", callback=lambda:dpg.show_tool(dpg.mvTool_Font))
                 dpg.add_menu_item(label="Show Item Registry", callback=lambda:dpg.show_tool(dpg.mvTool_ItemRegistry))
                 dpg.add_menu_item(label="Show Stack Tool", callback=lambda:dpg.show_tool(dpg.mvTool_Stack))
-
+            with dpg.menu(label="Tools"):
+                dpg.add_menu_item(label="Add special characters", callback=lambda:spe_char_interface())
         t2 = dpg.add_button(label="coucou", width=200, height=50, arrow=True, callback=eceoutsdf)
 
         with dpg.theme() as item_theme:
@@ -377,6 +465,7 @@ try:
                                 bas__yes = base64.b64decode(bas_no.encode()).decode()
                                 #print(bas__yes)
                                 add_table(bas__yes, number_tag, id_jssson, "text" )
+                """
             with dpg.tab(label='Image'):
                     with dpg.table(header_row=True, no_host_extendX=True, delay_search=True,
                         borders_innerH=True, borders_outerH=True, borders_innerV=True,
@@ -387,10 +476,21 @@ try:
                         dpg.add_table_column(label="Delete", init_width_or_weight=0.3) 
                         tag_number = 0
                         for x in list_images:
-                            tag_number = x
-                            add_images(x, tag_number)
+                            with dpg.table_row():
+
+                                tag_number = x
+                                add_images(x, tag_number)
+            """
+            with dpg.tab(label='Image'):
+                with dpg.child_window(tag="img_container_but_better",autosize_x=True, autosize_y=True,border=False, horizontal_scrollbar=True):
+                        tag_number = 0
+                        for img in list_images:
+                            tag_number = img
+                            with dpg.group(horizontal=True, parent="img_container_but_better"):
+                                add_image_with_popup(img, tag_number, width=120, height=120)
+
+                                
             with dpg.tab(label='Files '):
-                #dpg.add_text("This feature is in developement, this should not work very well...")
                 with dpg.table(header_row=True, no_host_extendX=True, delay_search=True,
                         borders_innerH=True, borders_outerH=True, borders_innerV=True,
                         borders_outerV=True, context_menu_in_body=True, row_background=True,
@@ -413,7 +513,7 @@ try:
 
 
         dpg.bind_font(default_font)
-    
+
     dpg.create_viewport(title='Remember Copy', width=800, height=500, large_icon="Icon/icon.ico")
     dpg.set_viewport_large_icon("Icon/icon.ico")
     dpg.set_viewport_small_icon("Icon/icon.ico")

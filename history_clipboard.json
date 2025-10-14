@@ -22,125 +22,6 @@
             "id": 576773945
         },
         {
-            "content": 248371446,
-            "date": "2025-3-27-11-45",
-            "type": "Image",
-            "pinned": "False",
-            "id": 321865112
-        },
-        {
-            "content": 918093393,
-            "date": "2025-3-27-11-46",
-            "type": "Image",
-            "pinned": "False",
-            "id": 850907742
-        },
-        {
-            "content": 629536317,
-            "date": "2025-3-27-11-46",
-            "type": "Image",
-            "pinned": "False",
-            "id": 608874722
-        },
-        {
-            "content": 707820271,
-            "date": "2025-3-27-11-47",
-            "type": "Image",
-            "pinned": "False",
-            "id": 472018294
-        },
-        {
-            "content": 245083510,
-            "date": "2025-3-27-11-47",
-            "type": "Image",
-            "pinned": "False",
-            "id": 142599141
-        },
-        {
-            "content": 305514341,
-            "date": "2025-3-27-11-48",
-            "type": "Image",
-            "pinned": "False",
-            "id": 732988001
-        },
-        {
-            "content": 481999278,
-            "date": "2025-3-27-11-48",
-            "type": "Image",
-            "pinned": "False",
-            "id": 226078279
-        },
-        {
-            "content": 696397779,
-            "date": "2025-3-27-11-51",
-            "type": "Image",
-            "pinned": "False",
-            "id": 606284515
-        },
-        {
-            "content": 772284638,
-            "date": "2025-3-27-11-54",
-            "type": "Image",
-            "pinned": "False",
-            "id": 364273615
-        },
-        {
-            "content": 669500200,
-            "date": "2025-3-27-11-59",
-            "type": "Image",
-            "pinned": "False",
-            "id": 380653770
-        },
-        {
-            "content": 381724718,
-            "date": "2025-3-27-12-5",
-            "type": "Image",
-            "pinned": "False",
-            "id": 663204950
-        },
-        {
-            "content": 115203470,
-            "date": "2025-3-27-12-6",
-            "type": "Image",
-            "pinned": "False",
-            "id": 480144033
-        },
-        {
-            "content": 909614910,
-            "date": "2025-3-27-12-7",
-            "type": "Image",
-            "pinned": "False",
-            "id": 305779515
-        },
-        {
-            "content": 724555661,
-            "date": "2025-4-4-16-1",
-            "type": "Image",
-            "pinned": "False",
-            "id": 371001307
-        },
-        {
-            "content": 384965832,
-            "date": "2025-4-24-11-28",
-            "type": "Image",
-            "pinned": "False",
-            "id": 753353414
-        },
-        {
-            "content": "errror",
-            "date": "2025-4-27-12-27",
-            "type": "errror",
-            "pinned": "False",
-            "id": 603736996
-        },
-        {
-            "content": 764861613,
-            "date": "2025-4-27-12-29",
-            "type": "Image",
-            "pinned": "False",
-            "id": 971492039
-        },
-        {
             "content": "C:\\Users\\valer\\OneDrive\\Bureau\\brouillon\\heure\\r.py",
             "date": "2025-4-29-14-17",
             "type": "Fichier",
@@ -148,39 +29,51 @@
             "id": 520963365
         },
         {
-            "content": 159337693,
-            "date": "2025-5-25-12-13",
-            "type": "Image",
-            "pinned": false,
-            "id": 7041381
-        },
-        {
-            "content": 29113776,
-            "date": "2025-5-25-12-16",
-            "type": "Image",
-            "pinned": false,
-            "id": 48972137
-        },
-        {
-            "content": 269774363,
-            "date": "2025-5-26-14-17",
-            "type": "Image",
-            "pinned": false,
-            "id": 732610111
-        },
-        {
-            "content": 381489495,
-            "date": "2025-5-26-15-0",
-            "type": "Image",
-            "pinned": false,
-            "id": 183614269
-        },
-        {
             "content": "files\\some_file.txt",
             "date": "2025-6-2-16-14",
             "type": "Fichier",
             "pinned": false,
             "id": 70028991
+        },
+        {
+            "content": 750365494,
+            "date": "2025-6-20-15-47",
+            "type": "Image",
+            "pinned": false,
+            "id": 603611626
+        },
+        {
+            "content": 72504444,
+            "date": "2025-6-20-15-47",
+            "type": "Image",
+            "pinned": false,
+            "id": 888472513
+        }
+    ],
+    "spe_character": [
+        {
+            "character": "0x201d"
+        },
+        {
+            "character": "0x2019"
+        },
+        {
+            "character": "0x2005"
+        },
+        {
+            "character": "0x201c"
+        },
+        {
+            "character": "0x153"
+        },
+        {
+            "character": "0x2022"
+        },
+        {
+            "character": "0x1f4cb"
+        },
+        {
+            "character": "0x274c"
         }
     ]
 }

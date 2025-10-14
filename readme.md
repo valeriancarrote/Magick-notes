@@ -43,4 +43,5 @@ If you want to use this with a shortcut, you can execute **shortcut.exe**, then,
 - [x] IA texte analys
 - [ ] Latex math expresion support 
 - [x] Paste file 
+- [ ] Real time
 
