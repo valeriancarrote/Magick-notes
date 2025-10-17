@@ -103,32 +103,25 @@ try:
         do_things_with_json()
         tag_row = user_data[0]
         id_fichier = user_data[2]
-        essais = 0
         for x in list_of_copy["history"]: 
             if x["id"] == id_fichier: 
                 path_file = x["content"] 
                 path_file = ftfy.fix_text(path_file)
                 name_of_the_file = os.path.basename(path_file)
                 print(name_of_the_file)
-                
-                list_files_in_folder("files")
-                print(files_dir)
-                for x in files_dir:  
-                    if name_of_the_file in x: 
-                        os.remove(f"files/{name_of_the_file}")
-                        delete_element_by_id(id_fichier)
-                        print(f"the file {name_of_the_file} was deleted")
-                        notif.show_notification(f"The file {name_of_the_file} was deleted ", 3, "info")
-                        if dpg.does_item_exist(tag_row):
+                try:
+                    os.remove(f"files/{name_of_the_file}")
+                    delete_element_by_id(id_fichier)
+                    print(f"the file {name_of_the_file} was deleted")
+                    notif.show_notification(f"The file {name_of_the_file} was deleted ", 3, "info")
+                    if dpg.does_item_exist(tag_row):
 
-                            dpg.delete_item(tag_row)
-                            return
-                    if name_of_the_file not in x : 
-                        essais += 1
-                        if len(files_dir) == essais :   
-                            print(f"The file {name_of_the_file} was not found")
-                            notif.show_notification(f"There was an error during the suppresion of the file {name_of_the_file}", 3, "alert")
-                            
+                        dpg.delete_item(tag_row)
+                        return                
+                except Exception:  
+                    print(f"The file {name_of_the_file} was not found")
+                    notif.show_notification(f"There was an error during the suppresion of the file {name_of_the_file}", 3, "alert")
+
     def supprimer_texte(sender, app_data, user_data): 
         truc_de_ligne = user_data[0]
         print(f"le truc de la ligne c'est ca :  {truc_de_ligne}")
