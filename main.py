@@ -74,31 +74,25 @@ try:
         dpg.create_context()
     list_of_copy = []
     def supprimer_image(sender, app_data, user_data): 
-        #print("User data c'est ca : ", user_data)
+        # On supprime, l'image dans le fichier, l'id dans le json et l'image sur l'apli
         do_things_with_json()
-        if user_data.startswith("row_img_"):
-            try:
-                filename = user_data.split("_")[2]  
-                filepath = os.path.join("image", filename)
-                if os.path.exists(filepath):
-                    file_id = filepath.replace(".PNG", "")
-                    file_id = file_id.replace(mypath.replace("/", "\\"), "")
-                    for id in list_of_copy["history"]: 
-                        if id["content"] == int(file_id):   
-                            id_j = id["id"]
-                            delete_element_by_id(id_j)
-
-                    os.remove(filepath)
+        image_tag_aplli = user_data[0]
+        tag_fichier = user_data[1]
+        try: 
+            
+            for id in list_of_copy["history"]: 
+                if id["content"] == int(tag_fichier.replace(".PNG", "")):   
                     
-                    print(f"Fichier supprimé : {filepath}")
-                    if dpg.does_item_exist(user_data):
-                        dpg.delete_item(user_data)
-                    notif.show_notification("Image deleted ! ", 3, "info")
-
-            except Exception as e:
-                print(f"Erreur :  {e}")
-                notif.show_notification(f"The image could not be deleted : {e} ", 3, "alert")
-
+                    id_j = id["id"]
+                    delete_element_by_id(id_j)
+            if dpg.does_item_exist(image_tag_aplli):
+                dpg.delete_item(image_tag_aplli)
+            os.remove(f"image\{tag_fichier}")
+            notif.show_notification("Image deleted ! ", 3, "info")
+        except Exception as e: 
+            print(f"Erreur :  {e}")
+            notif.show_notification(f"The image could not be deleted : {e} ", 3, "alert")
+   
     def supprimer_file(sender, app_data, user_data): 
         do_things_with_json()
         tag_row = user_data[0]
@@ -108,7 +102,6 @@ try:
                 path_file = x["content"] 
                 path_file = ftfy.fix_text(path_file)
                 name_of_the_file = os.path.basename(path_file)
-                print(name_of_the_file)
                 try:
                     os.remove(f"files/{name_of_the_file}")
                     delete_element_by_id(id_fichier)
@@ -163,8 +156,6 @@ try:
             dpg.bind_item_handler_registry(tag_window, "resize_handler")
 
     def open_file(sender, app_data, user_data): 
-
-
         id_fichier = user_data[2]
         for x in list_of_copy["history"]: 
             if x["id"] == id_fichier: 
@@ -172,16 +163,12 @@ try:
                 path_file = ftfy.fix_text(path_file)
                 name_of_the_file = os.path.basename(path_file)
                 print(name_of_the_file)
-                list_files_in_folder("files")
-                found = False
-                for x in files_dir: 
-                    if name_of_the_file in x: 
-                        os.startfile(f"files\{name_of_the_file}")
-                        found = True 
-                        break
-                if not found: 
+                try : 
+                    os.startfile(f"files\{name_of_the_file}")
+                except Exception: 
                     print(f"File '{name_of_the_file}' not found.")
                     notif.show_notification(f"Can't open file {name_of_the_file}", 3, "alert")
+
     def open_image(sender, app_data, user_data): 
 
 
@@ -295,7 +282,7 @@ try:
             dpg.add_button(label="Open in default image viewer", width=200, callback=open_image, user_data=tag_number)
             dpg.add_separator()
             dpg.add_button(label="Copy                                         ", width=200, callback=image_callback, user_data=tag_number)
-            dpg.add_button(label="Delete                                       ",width=200,  callback=supprimer_image, user_data=image_btn_tag)
+            dpg.add_button(label="Delete                                       ",width=200,  callback=supprimer_image, user_data=(image_btn_tag,tag_number))
             dpg.add_separator()
             dpg.add_button(label="Read text in image                  ", width=200, callback=image_callback, user_data=tag_number)
 
@@ -444,22 +431,7 @@ try:
                                 bas__yes = base64.b64decode(bas_no.encode()).decode()
                                 #print(bas__yes)
                                 add_table(bas__yes, number_tag, id_jssson, "text" )
-                """
-            with dpg.tab(label='Image'):
-                    with dpg.table(header_row=True, no_host_extendX=True, delay_search=True,
-                        borders_innerH=True, borders_outerH=True, borders_innerV=True,
-                        borders_outerV=True, context_menu_in_body=True, row_background=True,
-                        height=300, scrollY=True, tag="image_tab") as table_id:
-                        dpg.add_table_column(label="Image", init_width_or_weight=0.3) 
-                        dpg.add_table_column(label="Copy", init_width_or_weight=0.3)
-                        dpg.add_table_column(label="Delete", init_width_or_weight=0.3) 
-                        tag_number = 0
-                        for x in list_images:
-                            with dpg.table_row():
 
-                                tag_number = x
-                                add_images(x, tag_number)
-            """
             with dpg.tab(label='Image'):
                 with dpg.child_window(tag="img_container_but_better",autosize_x=True, autosize_y=True,border=False, horizontal_scrollbar=True):
                         tag_number = 0
