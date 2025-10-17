@@ -110,6 +110,7 @@ try:
                 path_file = ftfy.fix_text(path_file)
                 name_of_the_file = os.path.basename(path_file)
                 print(name_of_the_file)
+                
                 list_files_in_folder("files")
                 print(files_dir)
                 for x in files_dir:  
@@ -193,17 +194,12 @@ try:
 
         id_fichier = user_data
         print(id_fichier)
-        
-        list_files_in_folder("image")
-        found = False
-        for x in files_dir: 
-                    if id_fichier in x: 
-                        os.startfile(f"image\{id_fichier}")
-                        found = True 
-                        break
-        if not found: 
+        try:
+            os.startfile(f"image\{id_fichier}")
+        except Exception: 
             print(f"Image '{id_fichier}' not found.")
             notif.show_notification(f"Can't open image {id_fichier}", 3, "alert")
+
     def button_callback(sender, app_data, user_data):
         print(user_data)
         texte = dpg.get_value(user_data)
@@ -291,16 +287,6 @@ try:
             with dpg.texture_registry() as registry:
                 texture_registry = registry
 
-    def add_images(file_pathh, tag_number): 
-        row_tag = f"row_img_{tag_number}_{int(time.time()*1000)}"
-        image_tag = tag_number
-        width, height, channels, data = dpg.load_image(f"image/{file_pathh}")
-        with dpg.texture_registry():
-            texture_id = dpg.add_static_texture(width, height, data)
-        with dpg.table_row(tag=row_tag, parent="image_tab"):                 
-            dpg.add_image(texture_id, width=200, height=200, tag=tag_number)
-            dpg.add_image_button(texture_tag=copy_icon, width=40, height=40, callback=image_callback, user_data=image_tag)
-            dpg.add_image_button(texture_tag=deltet_icon, width=40, height=40, callback=supprimer_image, user_data=row_tag)
     def add_image_with_popup(file_pathh, tag_number, width=120, height=120):
         #row_tag = f"row_img_better_{tag_number}_{int(time.time()*1000)}"
         popup_btn_tag = f"{tag_number}_popup_{int(time.time()*1000)}"
