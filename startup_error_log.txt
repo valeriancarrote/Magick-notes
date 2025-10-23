@@ -1,7 +1,0 @@
-Traceback (most recent call last):
-  File "c:\Users\valer\Documents\progval\Magick-notes\main.py", line 429, in <module>
-    add_image_with_popup(img, tag_number, width=120, height=120)
-  File "c:\Users\valer\Documents\progval\Magick-notes\main.py", line 258, in add_image_with_popup
-    dpg.push_container_styling(spacing=0, window_padding=(0, 0))
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^
-AttributeError: module 'dearpygui.dearpygui' has no attribute 'push_container_styling'
