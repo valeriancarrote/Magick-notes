@@ -22,13 +22,6 @@
             "id": 576773945
         },
         {
-            "content": "C:\\Users\\valer\\OneDrive\\Bureau\\brouillon\\heure\\r.py",
-            "date": "2025-4-29-14-17",
-            "type": "Fichier",
-            "pinned": "False",
-            "id": 520963365
-        },
-        {
             "content": "files\\some_file.txt",
             "date": "2025-6-2-16-14",
             "type": "Fichier",
@@ -48,6 +41,13 @@
             "type": "Image",
             "pinned": false,
             "id": 888472513
+        },
+        {
+            "content": "files\\Javascript-Cheat-Sheet.pdf",
+            "date": "2025-10-23-12-11",
+            "type": "Fichier",
+            "pinned": false,
+            "id": 906237385
         }
     ],
     "spe_character": [

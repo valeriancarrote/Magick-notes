@@ -187,24 +187,17 @@ try:
         pyperclip.copy(texte)
     def file_copy_to_cliboard(sender, app_data, user_data): 
         id_fichier = user_data
-        for x in list_of_copy["history"]: 
-            if x["id"] == id_fichier: 
-                path_file = x["content"] 
-                name_of_the_file = os.path.basename(path_file)
-                print(name_of_the_file)
-                list_files_in_folder("files")
-                found = False
-                for x in files_dir: 
-                    if name_of_the_file in x: 
-                        found = True
-                        #os.startfile(f"files\{name_of_the_file}")
-                        path = f"files\{name_of_the_file}" 
-                        print(path)
-                        command = f"powershell Set-Clipboard -LiteralPath {path}" 
-                        os.system(command)
-                        break
-                if not found: 
-                    print(f"File '{name_of_the_file}' not found.")
+        print(id_fichier)
+        try: 
+            for x in list_of_copy["history"]: 
+                if x["id"] == id_fichier: 
+                    path_file = x["content"] 
+                    command = f"powershell Set-Clipboard -LiteralPath {path_file}" 
+                    os.system(command)
+                    notif.show_notification(f"File {path_file} copyed ", 3, "info")
+        except Exception: 
+            print(f"File '{user_data}' not found.")
+            notif.show_notification(f"Can't copy file {path_file}", 3, "alert")
 
     def image_callback(sender, app_data, user_data):
         filepath = f'image/{user_data}'
@@ -373,7 +366,7 @@ try:
                     
                     dpg.add_image(file_icon_texture, width=30, height=30)
                     dpg.add_text(os.path.basename(ftfy.fix_text(texte)), tag=text_tag, wrap=400)
-                dpg.add_image_button(texture_tag=copy_icon, width=40, height=40, callback=file_copy_to_cliboard, user_data=text_tag)
+                dpg.add_image_button(texture_tag=copy_icon, width=40, height=40, callback=file_copy_to_cliboard, user_data=json_iidddd)
                 dpg.add_image_button(texture_tag=deltet_icon, width=40, height=40, callback=supprimer_file, user_data=[row_tag, number,json_iidddd])
                 dpg.add_image_button(texture_tag=open_icon, width=40, height=40, callback=open_file, user_data=[row_tag, number,json_iidddd])
 
