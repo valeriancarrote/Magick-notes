@@ -3,7 +3,6 @@ import json
 import base64
 import pyperclip
 from os import walk
-import pyclip
 from io import BytesIO
 import win32clipboard
 from PIL import Image
@@ -12,9 +11,9 @@ import time
 import os
 from popup import NotificationManager
 from icon_recuperation import IconCache
-import traceback
-import sys
 import ftfy
+import requests
+
 
 
 Icon = IconCache()
@@ -164,6 +163,41 @@ def open_image(sender, app_data, user_data):
     except Exception: 
         print(f"Image '{id_fichier}' not found.")
         notif.show_notification(f"Can't open image {id_fichier}", 3, "alert")
+def read_texte_in_image(sender, app_data, user_data): 
+    tag_window = f"win_{int(time.time()*1000)}"
+    with dpg.window(label="Text of the image", tag=tag_window, width=300, height=200):
+        tag_load = int(time.time()*1000)
+        dpg.add_loading_indicator(circle_count=10, radius=10, tag=tag_load)
+        api_key = os.getenv("API_KEY_OCR")
+            
+        with open(f"image\{user_data}", 'rb') as image_file:
+            response = requests.post(
+                "https://api.ocr.space/parse/image",
+                files={'filename': image_file},
+                data={
+                    'apikey': api_key,
+                    'language': 'auto',
+                    'isOverlayRequired': False, 
+                    'OCREngine' : 2
+                }
+            )
+        
+        result = response.json()
+        if result.get("IsErroredOnProcessing"):
+            print("Error:", result.get("ErrorMessage"))
+        else:
+            dpg.delete_item(tag_load)
+            parsed_text = result['ParsedResults'][0]['ParsedText']
+            pyperclip.copy(parsed_text)
+            tag_texte = f"winnn_tqsd{int(time.time()*1000)}"
+            dpg.add_input_text(default_value=parsed_text, multiline=True, width=300, height=200, tag=tag_texte)
+            tag_winn = f"winnn_{int(time.time()*1000)}"
+            with dpg.item_handler_registry(tag=tag_winn):
+                dpg.add_item_resize_handler(callback=on_resize, user_data=tag_window)
+            dpg.bind_item_handler_registry(tag_window, tag_winn)
+
+                
+
 
 
 def copy_texte(sender, app_data, user_data):
@@ -266,7 +300,7 @@ def add_image_with_popup(file_pathh, tag_number, width=120, height=120):
         dpg.add_button(label="Copy                                         ", width=200, callback=copy_image, user_data=tag_number)
         dpg.add_button(label="Delete                                       ",width=200,  callback=supprimer_image, user_data=(image_btn_tag,tag_number))
         dpg.add_separator()
-        dpg.add_button(label="Read text in image                  ", width=200, callback=copy_image, user_data=tag_number)
+        dpg.add_button(label="Read text in image                  ", width=200, callback=read_texte_in_image, user_data=tag_number)
 
 def create_no_padding_theme():
     with dpg.theme() as theme_id:
