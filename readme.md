@@ -1,7 +1,7 @@
 # **Magick-notes**
 
 
-Magick-Notes is a small software built with PyDearGUI that allows you to pin notes. You can add text and images directly from your clipboard 📋
+Magick-Notes is a lightweight desktop app built with Python (DearPyGUI) that lets you pin notes and paste content (text, images and even files) directly from your clipboard 📋.
 
  
 
