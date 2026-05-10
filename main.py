@@ -13,14 +13,20 @@ from popup import NotificationManager
 from icon_recuperation import IconCache
 import ftfy
 import requests
+from supabase import create_client
+
 
 
 
 Icon = IconCache()
 notif = NotificationManager()       
+supabase = create_client("https://dmmwwuatdanmcuxjnrsd.supabase.co", "sb_publishable_cMGonHxBVNbQrgQ1O7cilw_nOl9NcGB")
 
 list_images = []
 list_of_copy = []
+
+email_l = ""
+password_d = ""
 def do_things_with_image():
     # make a list with all of the image 
     global list_images
@@ -69,7 +75,7 @@ def supprimer_image(sender, app_data, user_data):
                 delete_element_by_id(id_j)
         if dpg.does_item_exist(image_tag_aplli):
             dpg.delete_item(image_tag_aplli)
-        os.remove(f"image\{tag_fichier}")
+        os.remove(f"image/{tag_fichier}")
         notif.show_notification("Image deleted ! ", 3, "info")
     except Exception as e: 
         print(f"Erreur :  {e}")
@@ -149,7 +155,7 @@ def open_file(sender, app_data, user_data):
             name_of_the_file = os.path.basename(path_file)
             print(name_of_the_file)
             try : 
-                os.startfile(f"files\{name_of_the_file}")
+                os.startfile(f"files/{name_of_the_file}")
             except Exception: 
                 print(f"File '{name_of_the_file}' not found.")
                 notif.show_notification(f"Can't open file {name_of_the_file}", 3, "alert")
@@ -159,7 +165,7 @@ def open_image(sender, app_data, user_data):
     id_fichier = user_data
     print(id_fichier)
     try:
-        os.startfile(f"image\{id_fichier}")
+        os.startfile(f"image/{id_fichier}")
     except Exception: 
         print(f"Image '{id_fichier}' not found.")
         notif.show_notification(f"Can't open image {id_fichier}", 3, "alert")
@@ -170,7 +176,7 @@ def read_texte_in_image(sender, app_data, user_data):
         dpg.add_loading_indicator(circle_count=10, radius=10, tag=tag_load)
         api_key = os.getenv("API_KEY_OCR")
             
-        with open(f"image\{user_data}", 'rb') as image_file:
+        with open(f"image/{user_data}", 'rb') as image_file:
             response = requests.post(
                 "https://api.ocr.space/parse/image",
                 files={'filename': image_file},
@@ -275,9 +281,9 @@ def load_icon(file_path):
     width, height, channels, data = dpg.load_image(file_path)
     with dpg.texture_registry():
         return dpg.add_static_texture(width, height, data)
-copy_icon = load_icon("Icon\copier.png")
-deltet_icon = load_icon("Icon\croix.png")
-open_icon = load_icon("Icon\dossier.png")
+copy_icon = load_icon("Icon/copier.png")
+deltet_icon = load_icon("Icon/croix.png")
+open_icon = load_icon("Icon/dossier.png")
 def create_texture_registry():
     global texture_registry
     if texture_registry is None:  
@@ -309,10 +315,13 @@ def create_no_padding_theme():
             dpg.add_theme_style(dpg.mvStyleVar_ItemSpacing, 0, 1)
             dpg.add_theme_color(dpg.mvThemeCol_PopupBg, (51, 51, 55, 255))
     return theme_id
-def eceoutsdf(): 
-    instance = ClipboardHistoryManager()
+def eceoutsdf(new=""):
+    if new == 1:
+        instance = ClipboardHistoryManager()
 
-    instance.add_new_entry()
+        instance.add_new_entry()
+    
+
     do_things_with_json()
     do_things_with_image()
     
@@ -364,6 +373,56 @@ def eceoutsdf():
             id_jssson = text["id"] 
             add_table(pathhh, number_tag_file, id_jssson, "file")            
 
+
+def registor(): 
+    tag_window = f"windo_{int(time.time()*1000)}"
+    with dpg.window(label="Login", tag=tag_window, width=300, height=150, pos=(250, 300/2)):
+        with dpg.group(horizontal=True):
+            dpg.add_text("email : ")
+            email_tag = f"email_{tag_window}"
+            dpg.add_input_text(width=120, tag=email_tag)
+        with dpg.group(horizontal=True):
+            dpg.add_text("password : ")
+            password_tag = f"password_{tag_window}"
+            dpg.add_input_text(width=100, tag=password_tag, password=True)
+
+        t5 = dpg.add_button(label="Register", width=100, height=25, callback=set_credential, user_data=[email_tag, password_tag])
+
+
+
+def set_credential(sender, app_data, user_data):  
+    global password_d, email_l
+    
+    email = dpg.get_value(user_data[0])
+    password = dpg.get_value(user_data[1])
+
+    #print(email, password)
+
+    email_l = email
+    password_d = password
+
+def send_to_servor() : 
+    global password_d, email_l
+    supabase.auth.sign_in_with_password({"email": email_l, "password": password_d})
+
+    supabase.storage.from_('history').upload('history_clipboard.json', "history_clipboard.json", {'upsert': 'true',})
+
+def get_from_servor(): 
+    global password_d, email_l
+    supabase.auth.sign_in_with_password({"email": email_l, "password": password_d})
+    r = supabase.storage.from_('history').download('history_clipboard.json')
+    if os.path.isfile("history_clipboard.json"):
+        os.remove("history_clipboard.json")
+        
+        with open("history_clipboard.json", "wb") as f:
+            f.write(r)
+    else:
+        with open("history_clipboard.json", "wb") as f:
+            f.write(r)
+    
+    eceoutsdf()
+
+
 def add_table(texte, number, json_iidddd, type): 
     if type == str("text"): 
         row_tag = f"row_{number}_{int(time.time()*1000)}"
@@ -392,14 +451,16 @@ def add_table(texte, number, json_iidddd, type):
             dpg.add_image_button(texture_tag=copy_icon, width=40, height=40, callback=file_copy_to_cliboard, user_data=json_iidddd)
             dpg.add_image_button(texture_tag=deltet_icon, width=40, height=40, callback=supprimer_file, user_data=[row_tag, number,json_iidddd])
             dpg.add_image_button(texture_tag=open_icon, width=40, height=40, callback=open_file, user_data=[row_tag, number,json_iidddd])
-
+"""
 with dpg.font_registry():
     default_font = dpg.add_font("OpenSans.ttf", 15)
     with dpg.font("OpenSans.ttf", 15) as default_font: 
         
         dpg.add_font_range_hint(dpg.mvFontRangeHint_Default)
         dpg.add_font_chars([0x201d, 0x2019, 0x2005, 0x201c, 0x153, 0x2022, 0x1f4cb, 0x274c])
-
+"""
+with dpg.font_registry():
+    default_font = dpg.add_font("OpenSans.ttf", 15)
 with dpg.window(label="Magic-copy", tag="Magic-copy"):
     with dpg.menu_bar():
         with dpg.menu(label="Debug"):
@@ -413,7 +474,10 @@ with dpg.window(label="Magic-copy", tag="Magic-copy"):
             dpg.add_menu_item(label="Show Stack Tool", callback=lambda:dpg.show_tool(dpg.mvTool_Stack))
         with dpg.menu(label="Tools"):
             dpg.add_menu_item(label="Add special characters", callback=lambda:spe_char_interface())
-    t2 = dpg.add_button(label="coucou", width=200, height=50, arrow=True, callback=eceoutsdf)
+            dpg.add_menu_item(label="Register", callback=registor)
+    t2 = dpg.add_button(label="coucou", width=200, height=50, arrow=True, callback=lambda:eceoutsdf(1))
+    t3 = dpg.add_button(label="coucou", width=200, height=50, arrow=True, callback=send_to_servor)
+    t4 = dpg.add_button(label="coucou", width=200, height=50, arrow=True, callback=get_from_servor)
 
     with dpg.theme() as item_theme:
         with dpg.theme_component(dpg.mvButton):
@@ -424,6 +488,12 @@ with dpg.window(label="Magic-copy", tag="Magic-copy"):
             dpg.add_theme_style(dpg.mvStyleVar_FramePadding, 20, 10)
 
         dpg.bind_item_theme(t2, item_theme)
+    with dpg.theme() as item_theme:
+        with dpg.theme_component(dpg.mvButton):
+            dpg.add_theme_color(dpg.mvThemeCol_Button, (168, 62, 50))
+            dpg.add_theme_style(dpg.mvStyleVar_FrameRounding, 5)
+            dpg.add_theme_style(dpg.mvStyleVar_FramePadding, 20, 10)
+        dpg.bind_item_theme(t3, item_theme)
     with dpg.tab_bar(label='tabbar'):
         with dpg.tab(label='Texte '):
             
