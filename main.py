@@ -14,6 +14,10 @@ from icon_recuperation import IconCache
 import ftfy
 import requests
 from supabase import create_client
+from dotenv import load_dotenv, dotenv_values , set_key
+import re
+
+
 
 
 
@@ -25,8 +29,7 @@ supabase = create_client("https://dmmwwuatdanmcuxjnrsd.supabase.co", "sb_publish
 list_images = []
 list_of_copy = []
 
-email_l = ""
-password_d = ""
+
 def do_things_with_image():
     # make a list with all of the image 
     global list_images
@@ -155,19 +158,20 @@ def open_file(sender, app_data, user_data):
             name_of_the_file = os.path.basename(path_file)
             print(name_of_the_file)
             try : 
-                os.startfile(f"files/{name_of_the_file}")
+                os.startfile(f"files\{name_of_the_file}")
             except Exception: 
                 print(f"File '{name_of_the_file}' not found.")
                 notif.show_notification(f"Can't open file {name_of_the_file}", 3, "alert")
-def open_image(sender, app_data, user_data): 
 
+
+def open_image(sender, app_data, user_data): 
 
     id_fichier = user_data
     print(id_fichier)
     try:
-        os.startfile(f"image/{id_fichier}")
-    except Exception: 
-        print(f"Image '{id_fichier}' not found.")
+        os.startfile(f"image\{id_fichier}")
+    except Exception as e: 
+        print(f"Image '{id_fichier}' not found. Error : {e}")
         notif.show_notification(f"Can't open image {id_fichier}", 3, "alert")
 def read_texte_in_image(sender, app_data, user_data): 
     tag_window = f"win_{int(time.time()*1000)}"
@@ -238,37 +242,6 @@ def copy_image(sender, app_data, user_data):
     win32clipboard.CloseClipboard()
 
     notif.show_notification(f"The Image was succesfuly copied", 3, "info")
-
-
-def add_spe_char_in_json(spe): 
-    
-    ajout = { 
-        "character" : str(spe)
-    }
-    with open("history_clipboard.json", "r", encoding="utf-8") as f:
-        data = json.load(f)
-    data["spe_character"].append(ajout) 
-    with open("history_clipboard.json", "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
-
-def spe_char_interface(): 
-    tag_window = f"win_char_{int(time.time()*1000)}"
-    with dpg.window(label="Add spe char", tag=tag_window, width=400, height=200): 
-        dpg.add_text("Sometime, it can happen that the application doesn't recogize ")
-        dpg.add_text(" a caracter (In this case the carater will be replace by ?)  ")
-
-        dpg.add_text("To fix this you can copy your carater and paste it here : ")
-
-        with dpg.group(horizontal=True):
-                input_tag_carac = f"carac_{int(time.time()*1000)}"
-                dpg.add_input_text(width=50, tag=input_tag_carac)
-                dpg.add_button(label="Send", callback=ask_ia, user_data=input_tag_carac)
-
-
-
-
-
-
 
 
 do_things_with_json()
@@ -389,28 +362,44 @@ def registor():
         t5 = dpg.add_button(label="Register", width=100, height=25, callback=set_credential, user_data=[email_tag, password_tag])
 
 
+def get_user_name(): 
+    user = supabase.auth.get_user()
+    return (user.user.email).split("@")[0] 
 
 def set_credential(sender, app_data, user_data):  
-    global password_d, email_l
     
     email = dpg.get_value(user_data[0])
     password = dpg.get_value(user_data[1])
 
-    #print(email, password)
+    with open(".env", "w") as f:
+            f.write(f"MAIL={email}\n")
+            f.write(f"PASSWORD={password}\n")
+    login()
+    
+def get_credential() : 
+    load_dotenv() 
+    return (os.getenv("MAIL"),os.getenv("PASSWORD"))
 
-    email_l = email
-    password_d = password
+def login(): 
+    try : 
+        mail, password = get_credential()
+        supabase.auth.sign_in_with_password({"email": mail, "password": password})
+    except: 
+        print("could not login automaticely")
+
+login()
 
 def send_to_servor() : 
-    global password_d, email_l
-    supabase.auth.sign_in_with_password({"email": email_l, "password": password_d})
 
-    supabase.storage.from_('history').upload('history_clipboard.json', "history_clipboard.json", {'upsert': 'true',})
+    username = get_user_name()
+    #print(username)
+    supabase.storage.from_('history').upload(f'{username}/history_clipboard.json', "history_clipboard.json", {'upsert': 'true',})
 
 def get_from_servor(): 
-    global password_d, email_l
-    supabase.auth.sign_in_with_password({"email": email_l, "password": password_d})
-    r = supabase.storage.from_('history').download('history_clipboard.json')
+
+
+    username = get_user_name()
+    r = supabase.storage.from_('history').download(f'{username}/history_clipboard.json')
     if os.path.isfile("history_clipboard.json"):
         os.remove("history_clipboard.json")
         
@@ -473,7 +462,6 @@ with dpg.window(label="Magic-copy", tag="Magic-copy"):
             dpg.add_menu_item(label="Show Item Registry", callback=lambda:dpg.show_tool(dpg.mvTool_ItemRegistry))
             dpg.add_menu_item(label="Show Stack Tool", callback=lambda:dpg.show_tool(dpg.mvTool_Stack))
         with dpg.menu(label="Tools"):
-            dpg.add_menu_item(label="Add special characters", callback=lambda:spe_char_interface())
             dpg.add_menu_item(label="Register", callback=registor)
     t2 = dpg.add_button(label="coucou", width=200, height=50, arrow=True, callback=lambda:eceoutsdf(1))
     t3 = dpg.add_button(label="coucou", width=200, height=50, arrow=True, callback=send_to_servor)
