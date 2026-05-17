@@ -15,7 +15,9 @@ import ftfy
 import requests
 from supabase import create_client
 from dotenv import load_dotenv, dotenv_values , set_key
-import re
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from urllib.parse import urlparse, parse_qs
 
 
 
@@ -28,6 +30,9 @@ supabase = create_client("https://dmmwwuatdanmcuxjnrsd.supabase.co", "sb_publish
 
 list_images = []
 list_of_copy = []
+
+captured_code = None  
+
 
 
 def do_things_with_image():
@@ -259,6 +264,7 @@ deltet_icon = load_icon("Icon/croix.png")
 open_icon = load_icon("Icon/dossier.png")
 icon_logged = load_icon("Icon/logged.png")
 icon_not_logged = load_icon("Icon/not_logged.png")
+icon_google = load_icon("Icon/google.png")
 
 def create_texture_registry():
     global texture_registry
@@ -364,12 +370,18 @@ def registor():
 
         t5 = dpg.add_button(label="Register", width=100, height=25, callback=set_credential, user_data=[email_tag, password_tag])
 
+        dpg.add_separator()
+
+        dpg.add_image_button(texture_tag=icon_google, width=300, height=100, callback=login_with_google)
+
 def is_logged(): 
-    try: 
-        user = supabase.auth.get_user()
-        return True 
-    except: 
+    
+    if supabase.auth.get_user() == None:
         return False
+    else:
+        return True 
+    
+        
 def get_sesion_info(): 
     sesion_info = {}
     try:
@@ -378,32 +390,102 @@ def get_sesion_info():
         sesion_info["username"] = (user.user.email).split("@")[0]
         sesion_info["access_token"] = sessions_id.access_token
         sesion_info["refresh_token"] = sessions_id.refresh_token
-        sesion_info["all"] = sessions_id
         return sesion_info
     except: 
-        notif.show_notification(f"Error, user not logged", 3, "alert")
+        notif.show_notification(f"Error, user not logged ! ", 5, "alert")
+
 def set_credential(sender, app_data, user_data):  
     
     email = dpg.get_value(user_data[0])
     password = dpg.get_value(user_data[1])
 
-    with open(".env", "w") as f:
-            f.write(f"MAIL={email}\n")
-            f.write(f"PASSWORD={password}\n")
-    login()
+    try:
+        supabase.auth.sign_in_with_password({"email": email, "password": password})
+        notif.show_notification(f"Succesfuly logged", 3, "info")
+        
+        with open(".env", "w") as f:
+                    f.write(f"TOKEN_ACCES={get_sesion_info()["access_token"]}\n")
+                    f.write(f"REF_TOKEN={get_sesion_info()["refresh_token"]}\n")
+        online_image()
+    except:
+        notif.show_notification(f"Wrong username/password, please try again", 3, "warning")
     
-def get_credential() : 
+
+
+class GoogleCallback(BaseHTTPRequestHandler):
+    def do_GET(self):
+        global captured_code
+
+        params = parse_qs(urlparse(self.path).query)
+        code = params.get("code", [None])[0]
+
+        if code:
+            captured_code = code
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"<html><body><h2>Login successful ! You can close this tab.</h2></body></html>")
+        else:
+            self.send_response(400)
+            self.end_headers()
+            self.wfile.write(b"<html><body><h2>No code received.</h2></body></html>")
+
+
+
+def wait_for_google_callback(port=54321):
+    server = HTTPServer(("localhost", port), GoogleCallback)
+    server.handle_request() 
+    server.server_close()
+
+
+def login_with_google():
+    global captured_code
+    captured_code = None
+
+    response = supabase.auth.sign_in_with_oauth({
+        "provider": "google",
+        "options": {
+            "redirect_to": "http://localhost:54321",
+            "scopes": "email profile"
+        }
+    })
+
+    server_thread = threading.Thread(target=wait_for_google_callback, args=(54321,))
+    server_thread.daemon = True
+    server_thread.start()
+
+    import webbrowser
+    webbrowser.open(response.url)
+    notif.show_notification("Browser opened, please log in with Google...", 4, "info")
+
+    server_thread.join(timeout=120)
+
+    if not captured_code:
+        notif.show_notification("Google login failed or timed out", 4, "alert")
+        return
+
+    session = supabase.auth.exchange_code_for_session({"auth_code": captured_code})
+
+    access_token = session.session.access_token
+    refresh_token = session.session.refresh_token
+
+    with open(".env", "w") as f:
+        f.write(f"TOKEN_ACCES={access_token}\n")
+        f.write(f"REF_TOKEN={refresh_token}\n")
+
+    notif.show_notification("Successfully logged in with Google !", 3, "info")
+    online_image()
+
+
+def login_refrech(): 
     load_dotenv() 
-    return (os.getenv("MAIL"),os.getenv("PASSWORD"))
-
-def login(): 
+    acces_token, recherch_token = os.getenv("TOKEN_ACCES"),os.getenv("REF_TOKEN")
     try : 
-        mail, password = get_credential()
-        supabase.auth.sign_in_with_password({"email": mail, "password": password})
+        supabase.auth.set_session(acces_token,recherch_token)
+        online_image()
+        notif.show_notification(f"Automaticely logged", 3, "info")
     except: 
-        print("could not login automaticely")
+        notif.show_notification(f"Could not login automaticely", 3, "info")
 
-login()
 #print(get_sesion_info())
 
 
@@ -428,6 +510,16 @@ def get_from_servor():
             f.write(r)
     
     eceoutsdf()
+
+def online_image(): 
+
+    if is_logged():
+        dpg.configure_item("tag_image_online_or_not", texture_tag=icon_logged)
+        dpg.configure_item("text_online", color=(218, 26, 21), text="COUCOU")
+        
+    else:
+        dpg.configure_item("tag_image_online_or_not", texture_tag=icon_not_logged)
+
 
 
 def add_table(texte, number, json_iidddd, type): 
@@ -458,14 +550,8 @@ def add_table(texte, number, json_iidddd, type):
             dpg.add_image_button(texture_tag=copy_icon, width=40, height=40, callback=file_copy_to_cliboard, user_data=json_iidddd)
             dpg.add_image_button(texture_tag=deltet_icon, width=40, height=40, callback=supprimer_file, user_data=[row_tag, number,json_iidddd])
             dpg.add_image_button(texture_tag=open_icon, width=40, height=40, callback=open_file, user_data=[row_tag, number,json_iidddd])
-"""
-with dpg.font_registry():
-    default_font = dpg.add_font("OpenSans.ttf", 15)
-    with dpg.font("OpenSans.ttf", 15) as default_font: 
-        
-        dpg.add_font_range_hint(dpg.mvFontRangeHint_Default)
-        dpg.add_font_chars([0x201d, 0x2019, 0x2005, 0x201c, 0x153, 0x2022, 0x1f4cb, 0x274c])
-"""
+
+
 with dpg.font_registry():
     default_font = dpg.add_font("OpenSans.ttf", 15)
 with dpg.window(label="Magic-copy", tag="Magic-copy"):
@@ -481,9 +567,17 @@ with dpg.window(label="Magic-copy", tag="Magic-copy"):
             dpg.add_menu_item(label="Show Stack Tool", callback=lambda:dpg.show_tool(dpg.mvTool_Stack))
         with dpg.menu(label="Tools"):
             dpg.add_menu_item(label="Register", callback=registor)
-    t2 = dpg.add_button(label="coucou", width=200, height=50, arrow=True, callback=lambda:eceoutsdf(1))
-    t3 = dpg.add_button(label="coucou", width=200, height=50, arrow=True, callback=send_to_servor)
-    t4 = dpg.add_button(label="coucou", width=200, height=50, arrow=True, callback=get_from_servor)
+            
+    with dpg.group(horizontal=True):
+        t2 = dpg.add_button(label="coucou", width=200, height=50, arrow=True, callback=lambda:eceoutsdf(1))
+        t3 = dpg.add_button(label="coucou", width=200, height=50, arrow=True, callback=send_to_servor)
+        t4 = dpg.add_button(label="coucou", width=200, height=50, arrow=True, callback=get_from_servor)
+        #dpg.add_separator()
+        #tag_image_online_or_not = f"tag_image_online_or_not"
+        dpg.add_text(label="Coucou", color="blue", tag="text_online")
+        dpg.add_image(texture_tag=icon_logged, width=100, height=40, tag="tag_image_online_or_not")
+        online_image()
+        
 
     with dpg.theme() as item_theme:
         with dpg.theme_component(dpg.mvButton):
@@ -566,5 +660,8 @@ dpg.show_viewport()
 dpg.set_primary_window("Magic-copy", True)
 
 create_texture_registry()
+login_refrech()
+
 dpg.start_dearpygui()
 dpg.destroy_context()
+
