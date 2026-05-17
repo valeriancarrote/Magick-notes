@@ -257,6 +257,9 @@ def load_icon(file_path):
 copy_icon = load_icon("Icon/copier.png")
 deltet_icon = load_icon("Icon/croix.png")
 open_icon = load_icon("Icon/dossier.png")
+icon_logged = load_icon("Icon/logged.png")
+icon_not_logged = load_icon("Icon/not_logged.png")
+
 def create_texture_registry():
     global texture_registry
     if texture_registry is None:  
@@ -361,11 +364,24 @@ def registor():
 
         t5 = dpg.add_button(label="Register", width=100, height=25, callback=set_credential, user_data=[email_tag, password_tag])
 
-
-def get_user_name(): 
-    user = supabase.auth.get_user()
-    return (user.user.email).split("@")[0] 
-
+def is_logged(): 
+    try: 
+        user = supabase.auth.get_user()
+        return True 
+    except: 
+        return False
+def get_sesion_info(): 
+    sesion_info = {}
+    try:
+        user = supabase.auth.get_user()
+        sessions_id = supabase.auth.get_session()
+        sesion_info["username"] = (user.user.email).split("@")[0]
+        sesion_info["access_token"] = sessions_id.access_token
+        sesion_info["refresh_token"] = sessions_id.refresh_token
+        sesion_info["all"] = sessions_id
+        return sesion_info
+    except: 
+        notif.show_notification(f"Error, user not logged", 3, "alert")
 def set_credential(sender, app_data, user_data):  
     
     email = dpg.get_value(user_data[0])
@@ -388,17 +404,19 @@ def login():
         print("could not login automaticely")
 
 login()
+#print(get_sesion_info())
+
 
 def send_to_servor() : 
 
-    username = get_user_name()
-    #print(username)
+    username = get_sesion_info()["username"]
+    print(username)
     supabase.storage.from_('history').upload(f'{username}/history_clipboard.json', "history_clipboard.json", {'upsert': 'true',})
 
 def get_from_servor(): 
 
 
-    username = get_user_name()
+    username = get_sesion_info()["username"]
     r = supabase.storage.from_('history').download(f'{username}/history_clipboard.json')
     if os.path.isfile("history_clipboard.json"):
         os.remove("history_clipboard.json")
